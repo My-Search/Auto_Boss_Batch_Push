@@ -2138,16 +2138,10 @@ GM_registerMenuCommand("清空所有存储!", async () => {
     }
 })();
 
+// 退出警告
 window.addEventListener('beforeunload', function (event) {
     // 检查当前 URL 是否包含 "geek/job"
     if (window.location.href.includes("geek/job")) {
-        // 设置提示消息
-        var confirmationMessage = "您有未保存的更改，确定要离开此页面吗？";
-        
-        // Chrome 需要返回值
-        event.returnValue = confirmationMessage;
-        
-        // 兼容其他浏览器
-        return confirmationMessage;
+        return event.returnValue = "是否确定退出脚本控制页？";
     }
 });
