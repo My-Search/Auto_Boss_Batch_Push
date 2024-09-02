@@ -248,7 +248,7 @@ class Tools {
     }
 
     static bossIsActive(activeText) {
-        return !(activeText.includes("月") || activeText.includes("年") || activeText.includes("周"));
+        return !(activeText.includes("月") || activeText.includes("年") || activeText.includes("周") || activeText.includes("7日"));
     }
 
     static getRandomNumber(startMs, endMs) {
@@ -425,7 +425,7 @@ class OperationPanel {
         const githubImg = `<img width='16px' src='data:image/svg+xml;base64,PHN2ZyB0PSIxNzIxNjEyOTIyNjM1IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjQyNDAiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTEyIDQyLjY2NjY2N0E0NjQuNjQgNDY0LjY0IDAgMCAwIDQyLjY2NjY2NyA1MDIuMTg2NjY3IDQ2MC4zNzMzMzMgNDYwLjM3MzMzMyAwIDAgMCAzNjMuNTIgOTM4LjY2NjY2N2MyMy40NjY2NjcgNC4yNjY2NjcgMzItOS44MTMzMzMgMzItMjIuMTg2NjY3di03OC4wOGMtMTMwLjU2IDI3LjczMzMzMy0xNTguMjkzMzMzLTYxLjQ0LTE1OC4yOTMzMzMtNjEuNDRhMTIyLjAyNjY2NyAxMjIuMDI2NjY3IDAgMCAwLTUyLjA1MzMzNC02Ny40MTMzMzNjLTQyLjY2NjY2Ny0yOC4xNiAzLjQxMzMzMy0yNy43MzMzMzMgMy40MTMzMzQtMjcuNzMzMzM0YTk4LjU2IDk4LjU2IDAgMCAxIDcxLjY4IDQ3LjM2IDEwMS4xMiAxMDEuMTIgMCAwIDAgMTM2LjUzMzMzMyAzNy45NzMzMzQgOTkuNDEzMzMzIDk5LjQxMzMzMyAwIDAgMSAyOS44NjY2NjctNjEuNDRjLTEwNC4xMDY2NjctMTEuNTItMjEzLjMzMzMzMy01MC43NzMzMzMtMjEzLjMzMzMzNC0yMjYuOTg2NjY3YTE3Ny4wNjY2NjcgMTc3LjA2NjY2NyAwIDAgMSA0Ny4zNi0xMjQuMTYgMTYxLjI4IDE2MS4yOCAwIDAgMSA0LjY5MzMzNC0xMjEuMTczMzMzczM5LjY4LTEyLjM3MzMzMyAxMjggNDYuOTMzMzMzYTQ1NS42OCA0NTUuNjggMCAwIDEgMjM0LjY2NjY2NiAwYzg5LjYtNTkuMzA2NjY3IDEyOC00Ni45MzMzMzMgMTI4LTQ2LjkzMzMzM2ExNjEuMjggMTYxLjI4IDAgMCAxIDQuNjkzMzM0IDEyMS4xNzMzMzNBMTc3LjA2NjY2NyAxNzcuMDY2NjY3IDAgMCAxIDgxMC42NjY2NjcgNDc3Ljg2NjY2N2MwIDE3Ni42NC0xMTAuMDggMjE1LjQ2NjY2Ny0yMTMuMzMzMzM0IDIyNi45ODY2NjZhMTA2LjY2NjY2NyAxMDYuNjY2NjY3IDAgMCAxIDMyIDg1LjMzMzMzNHYxMjUuODY2NjY2YzAgMTQuOTMzMzMzIDguNTMzMzMzIDI2Ljg4IDMyIDIyLjE4NjY2N0E0NjAuOCA0NjAuOCAwIDAgMCA5ODEuMzMzMzMzIDUwMi4xODY2NjcgNDY0LjY0IDQ2NC42NCAwIDAgMCA1MTIgNDIuNjY2NjY3IiBmaWxsPSIjMjMxRjIwIiBwLWlkPSI0MjQxIj48L3BhdGg+PC9zdmc+' />`
         this.aboutLink = [
             [
-                [`<span>Auto_Boss_Batch_Push</span>&nbsp;${githubImg}`,"https://github.com/My-Search/Auto_Boss_Batch_Push"],
+                [`<span>Auto_Boss_Batch_Push</span>&nbsp;${githubImg}`,"https://github.com/18476305640/xiaozhuang/tree/dev/resource"],
                 [`<span>基于Boss_Batch_Push</span>&nbsp;${githubImg}`, "https://github.com/yangfeng20/boss_batch_push"],
             ]
         ]
@@ -2137,3 +2137,17 @@ GM_registerMenuCommand("清空所有存储!", async () => {
         });
     }
 })();
+
+window.addEventListener('beforeunload', function (event) {
+    // 检查当前 URL 是否包含 "geek/job"
+    if (window.location.href.includes("geek/job")) {
+        // 设置提示消息
+        var confirmationMessage = "您有未保存的更改，确定要离开此页面吗？";
+        
+        // Chrome 需要返回值
+        event.returnValue = confirmationMessage;
+        
+        // 兼容其他浏览器
+        return confirmationMessage;
+    }
+});
