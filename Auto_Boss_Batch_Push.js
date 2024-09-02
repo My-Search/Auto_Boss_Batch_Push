@@ -2,7 +2,7 @@
 // @name         Boss Batch Push Plus [Boss直聘批量投简历Plus]
 // @description  boss直聘批量简历投递
 // @namespace    maple
-// @version      1.6.4
+// @version      1.6.6
 // @author       maple,Ocyss,忒星,Iekrwh,zhuangjie
 // @license      Apache License 2.0
 // @run-at       document-start
@@ -2140,8 +2140,5 @@ GM_registerMenuCommand("清空所有存储!", async () => {
 
 // 退出警告
 window.addEventListener('beforeunload', function (event) {
-    // 检查当前 URL 是否包含 "geek/job"
-    if (window.location.href.includes("geek/job")) {
-        return event.returnValue = "是否确定退出脚本控制页？";
-    }
+    if (window.location.href.includes("geek/job?")) return event.returnValue = "是否确定退出脚本控制页？";
 });
