@@ -2,7 +2,7 @@
 // @name         Boss Batch Push Plus [Boss直聘批量投简历Plus]
 // @description  boss直聘批量简历投递
 // @namespace    maple
-// @version      1.6.6
+// @version      1.6.7
 // @author       maple,Ocyss,忒星,Iekrwh,zhuangjie
 // @license      Apache License 2.0
 // @run-at       document-start
@@ -1430,7 +1430,6 @@ class JobListPageHandler {
             clearInterval(nextPageTask)
             if (!this.publishState) {
                 logger.info("投递结束")
-                TampermonkeyApi.GmNotification("投递结束")
                 this.operationPanel.refreshShow("投递停止")
                 this.changeBatchPublishState(false);
                 return;
