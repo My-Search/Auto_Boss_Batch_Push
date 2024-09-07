@@ -2,7 +2,7 @@
 // @name         Boss Batch Push Plus [Boss直聘批量投简历Plus]
 // @description  boss直聘批量简历投递
 // @namespace    maple
-// @version      1.6.7
+// @version      1.7.0
 // @author       maple,Ocyss,忒星,Iekrwh,zhuangjie
 // @license      Apache License 2.0
 // @run-at       document-start
@@ -1383,31 +1383,53 @@ class JobListPageHandler {
     }
     // 搜索
     searchJob(keyword,searchWatchTime = 1500) {
-        return new Promise((resolve,reject)=>{
+        return new Promise(async (resolve,reject)=>{
             try {
-                const keywordInput = this.getSearchInputElement()
-                if(keyword == null) keyword = keywordInput.value
-                keywordInput.value = keyword;
-                this.clickSeatch()
-                // 返回第一页 搜索后默认就返回第一页了
-                // this.backFirstPage();
+                this.setKeyword(keyword);
+                await this.clickSeatch()
             }finally{
                 setTimeout(()=> resolve(),searchWatchTime)
             }
         })
     }
+    // 向搜索输入框中设置值
+    setKeyword(keyword) {
+        const keywordInput = this.getSearchInputElement()
+        if(keyword == null) keyword = keywordInput.value
+        keywordInput.value = keyword;
+        // 创建并派发一个输入事件
+        var event = new Event('input', {
+            bubbles: true,
+            cancelable: true
+        });
+        // 手动派发 input 事件，以触发事件监听器
+        keywordInput.dispatchEvent(event);
+    }
     // 点击搜索
-    clickSeatch() {
+    async clickSeatch() {
         // 找到具有类名".job_search_btn_click"的元素
-        var btn = document.querySelector(".search-btn");
-
+        let btn = $(".search-btn"),undercoverForBtn = findUndercover();
+        function findUndercover() {
+            let undercoverForBtnRaw = document.querySelector(".search-btn #undercover");
+            return undercoverForBtnRaw? $(undercoverForBtnRaw):undefined;
+        }
+        if(undercoverForBtn == null) {
+           const injectTask = await new Promise((resolve,reject)=>{
+               setTimeout(()=>{
+                   btn.append("<span id='undercover'>职位</span>")
+                   debugger
+                   resolve();
+               },50)
+           })
+           undercoverForBtn = findUndercover();
+        }
         // 检查元素是否存在
-        if(btn){
+        if(undercoverForBtn){
             // 模拟点击元素
-            btn.click();
+            undercoverForBtn.click();
             return true;
         }else{
-            console.log("找不到具有类名'.search-btn'的元素");
+            console.error("找不到目标类名");
             return false;
         }
     }
