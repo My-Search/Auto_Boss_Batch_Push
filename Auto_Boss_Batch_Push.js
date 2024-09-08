@@ -376,10 +376,6 @@ class OperationPanel {
         this.areaLoopInputLab = null
         // job地区loop lab
         this.jcInInputLab = null
-        // 薪资范围输入框lab
-        this.srInInputLab = null
-        // 公司规模范围输入框lab
-        this.csrInInputLab = null
         // 自定义招呼语lab
         this.selfGreetInputLab = null
 
@@ -411,7 +407,8 @@ class OperationPanel {
             "脚本筛选项介绍：",
             "公司名包含：投递工作的公司名一定包含在当前集合中，模糊匹配，多个使用逗号分割。这个一般不用，如果使用了也就代表只投这些公司的岗位。例子：【阿里,华为】",
             "排除公司名：投递工作的公司名一定不在当前集合中，也就是排除当前集合中的公司，模糊匹配，多个使用逗号分割。例子：【xxx外包】",
-            "排除工作内容：会自动检测上文(不是,不,无需等关键字),下文(系统,工具),例子：【外包,上门,销售,驾照】，如果写着是'不是外包''销售系统'那也不会被排除",
+            "工作内容排除：会自动检测上文(不是,不,无需等关键字),下文(系统,工具),例子：【外包,上门,销售,驾照】，如果写着是'不是外包''销售系统'那也不会被排除",
+            "工作内容包含：参考公司名包含，写法一样。",
             "Job名包含：投递工作的名称一定包含在当前集合中，模糊匹配，多个使用逗号分割。还可以使用&，比如【python&后端,java后端】那job名需要包含‘python’且‘后端’或者只包含‘java后端’。",
             "搜索地区loop：如“*”表示不限地区,普通值为地区名；每一个大轮换一个地区搜索。如“*,天河区”会不限地区进行一轮“搜索关键字loop”，那下一次是“天河区”进行一轮“搜索关键字loop”",
             "搜索关键字loop：如【java实习,前端实习】如果本轮是‘java实习’那下一轮是‘前端实习’，如果当前搜索的不在配置内，也会在此会话中临时加入。",
@@ -500,8 +497,6 @@ class OperationPanel {
         this.positionNames = DOMApi.createInputTag("搜索关键字loop", this.scriptConfig.getPositionNames());
         this.jcExInputLab = DOMApi.createInputTag("工作内容排除", this.scriptConfig.getJobContentExclude());
         this.jcInInputLab = DOMApi.createInputTag("工作内容包含", this.scriptConfig.getJobContentInclude());
-        this.srInInputLab = DOMApi.createInputTag("薪资范围", this.scriptConfig.getSalaryRange());
-        this.csrInInputLab = DOMApi.createInputTag("公司规模范围", this.scriptConfig.getCompanyScaleRange());
         this.selfGreetInputLab = DOMApi.createInputTag("自定义招呼语（注意与APP上的招呼语不互斥）", this.scriptConfig.getSelfGreet(),{placeholder:"建议留空,投递后会打开会话，APP上自聊！",widthSize:"300px"});
         DOMApi.eventListener(this.selfGreetInputLab.querySelector("input"), "blur", () => {
             // 失去焦点，编辑的招呼语保存到内存中；用于msgPage每次实时获取到最新的，即便不保存
@@ -518,8 +513,6 @@ class OperationPanel {
         inputContainerDiv.appendChild(this.positionNames)
         inputContainerDiv.appendChild(this.jcExInputLab)
         inputContainerDiv.appendChild(this.jcInInputLab)
-        inputContainerDiv.appendChild(this.srInInputLab)
-        inputContainerDiv.appendChild(this.csrInInputLab)
         inputContainerDiv.appendChild(this.selfGreetInputLab)
 
         // 进度显示
@@ -853,8 +846,6 @@ class OperationPanel {
         this.scriptConfig.setJobContentExclude(DOMApi.getInputVal(this.jcExInputLab))
         this.scriptConfig.setJobContentInclude(DOMApi.getInputVal(this.jcInInputLab))
         this.scriptConfig.setJobAreaLoop(DOMApi.getInputVal(this.searchAreaLoopInputLab))
-        this.scriptConfig.setSalaryRange(DOMApi.getInputVal(this.srInInputLab))
-        this.scriptConfig.setCompanyScaleRange(DOMApi.getInputVal(this.csrInInputLab))
         this.scriptConfig.setSelfGreet(DOMApi.getInputVal(this.selfGreetInputLab))
 
     }
@@ -1385,53 +1376,16 @@ class JobListPageHandler {
     searchJob(keyword,searchWatchTime = 1500) {
         return new Promise(async (resolve,reject)=>{
             try {
-                this.setKeyword(keyword);
-                await this.clickSeatch()
+                // 这里是使用js方式获取vue实例方式，通过修改keyword然后直接调用内部的搜索方法。
+                const vueComponentInstance = document.querySelector('.job-search-wrapper')?.__vue__;
+                if(vueComponentInstance == null) console.error("无法获取到vueComponentInstance来进行搜索！")
+                vueComponentInstance.keyword = keyword;
+                // console.log("查询表单:",vueComponentInstance.getFormData())
+                vueComponentInstance.searchBtnAction()
             }finally{
                 setTimeout(()=> resolve(),searchWatchTime)
             }
         })
-    }
-    // 向搜索输入框中设置值
-    setKeyword(keyword) {
-        const keywordInput = this.getSearchInputElement()
-        if(keyword == null) keyword = keywordInput.value
-        keywordInput.value = keyword;
-        // 创建并派发一个输入事件
-        var event = new Event('input', {
-            bubbles: true,
-            cancelable: true
-        });
-        // 手动派发 input 事件，以触发事件监听器
-        keywordInput.dispatchEvent(event);
-    }
-    // 点击搜索
-    async clickSeatch() {
-        // 找到具有类名".job_search_btn_click"的元素
-        let btn = $(".search-btn"),undercoverForBtn = findUndercover();
-        function findUndercover() {
-            let undercoverForBtnRaw = document.querySelector(".search-btn #undercover");
-            return undercoverForBtnRaw? $(undercoverForBtnRaw):undefined;
-        }
-        if(undercoverForBtn == null) {
-           const injectTask = await new Promise((resolve,reject)=>{
-               setTimeout(()=>{
-                   btn.append("<span id='undercover'>职位</span>")
-                   debugger
-                   resolve();
-               },50)
-           })
-           undercoverForBtn = findUndercover();
-        }
-        // 检查元素是否存在
-        if(undercoverForBtn){
-            // 模拟点击元素
-            undercoverForBtn.click();
-            return true;
-        }else{
-            console.error("找不到目标类名");
-            return false;
-        }
     }
     loopPublish() {
         // 过滤当前页满足条件的job并投递
@@ -1611,14 +1565,12 @@ class JobListPageHandler {
                 return reject(new JobNotMatchExp())
             }
 
-
-
-            // 工作内容检查
+            // `工作内容-排除`检查
             let jobContentExclude = this.scriptConfig.getJobContentExclude(true);
             const jobContentMismatch = Tools.semanticMatch(jobContentExclude, jobCardJson.postDescription)
             if (jobContentMismatch) {
                 logger.debug("当前job工作内容：" + jobCardJson.postDescription)
-                logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容(${jobContentMismatch})`)
+                logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容-排除(${jobContentMismatch})`)
                 return reject(new JobNotMatchExp())
             }
 
@@ -1815,34 +1767,17 @@ class JobListPageHandler {
             return false;
         }
 
-        // 不满足新增范围
-        let pageSalaryRange = BossDOMApi.getSalaryRange(jobTag);
-        let salaryRange = this.scriptConfig.getSalaryRange();
-        if (!Tools.rangeMatch(salaryRange, pageSalaryRange)) {
-            logger.debug("当前薪资范围：" + pageSalaryRange)
-            logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足薪资范围")
-            return false;
-        }
-
-
-
-        let pageCompanyScaleRange = this.scriptConfig.getCompanyScaleRange();
-        if (!Tools.rangeMatch(pageCompanyScaleRange, BossDOMApi.getCompanyScaleRange(jobTag))) {
-            logger.debug("当前公司规模范围：" + pageCompanyScaleRange)
-            logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足公司规模范围")
-            return false;
-        }
-
+        // 看是否已沟通过的
         if (!BossDOMApi.isNotCommunication(jobTag)) {
             logger.info("当前job被过滤：【" + jobTitle + "】 原因：已经沟通过")
             return false;
         }
-        // 看工作内容是否满足（这里最后请求，因为非必要请求请求多了将导致账号检测出异常）
+        // 看`工作内容-包含`是否满足（这里最后请求，因为非必要请求请求多了将导致账号检测出异常）
         const jobCardJson = await requestJobCardJson();
         const jobContentMismatch = orAndMatch(this.scriptConfig.getJobContentInclude(true), jobCardJson.postDescription)
         if (!jobContentMismatch) {
             logger.debug("当前job工作内容：" + jobCardJson.postDescription)
-            logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容(${jobContentMismatch})`)
+            logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容-包含(${jobContentMismatch})`)
             return false;
         }
 
@@ -2159,7 +2094,18 @@ GM_registerMenuCommand("清空所有存储!", async () => {
     }
 })();
 
-// 退出警告
+// 退出脚本控制页警告
 window.addEventListener('beforeunload', function (event) {
     if (window.location.href.includes("geek/job?")) return event.returnValue = "是否确定退出脚本控制页？";
 });
+
+// 为了防止vue路由进行脚本控制页 脚本不生效，当以刷新页面方式进入，避开vue路由
+const onClickSearchBtnReLoad = setInterval(()=>{
+    const targetElement = $('a:contains("搜索")[ka="header-job"]');
+    if(targetElement.length === 0) return;
+    targetElement.on('click', function(event) {
+        event.preventDefault(); // 阻止默认跳转
+        window.location.href = $(this).attr('href'); // 使用 window.location.href 刷新页面
+    });
+    clearInterval(onClickSearchBtnReLoad)
+}, 460);
