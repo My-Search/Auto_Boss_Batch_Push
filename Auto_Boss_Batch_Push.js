@@ -412,9 +412,7 @@ class OperationPanel {
             "Job名包含：投递工作的名称一定包含在当前集合中，模糊匹配，多个使用逗号分割。还可以使用&，比如【python&后端,java后端】那job名需要包含‘python’且‘后端’或者只包含‘java后端’。",
             "搜索地区loop：如“*”表示不限地区,普通值为地区名；每一个大轮换一个地区搜索。如“*,天河区”会不限地区进行一轮“搜索关键字loop”，那下一次是“天河区”进行一轮“搜索关键字loop”",
             "搜索关键字loop：如【java实习,前端实习】如果本轮是‘java实习’那下一轮是‘前端实习’，如果当前搜索的不在配置内，也会在此会话中临时加入。",
-            "薪资范围：投递工作的薪资范围一定在当前区间中，一定是区间，使用-连接范围。例如：【12-20】【12-】【-20】",
-            "公司规模范围：投递工作的公司人员范围一定在当前区间中，一定是区间，使用-连接范围。例如：【500-20000000】【500-】【-20000000】",
-            "自定义招呼语：编辑自定义招呼语，当【发送自定义招呼语】打开时，投递后发送boss默认的招呼语后还会发送自定义招呼语；使用&lt;br&gt; \\n 换行；例子：【你好\\n我...】",
+            "自定义招呼语：编辑自定义招呼语，当【发送自定义招呼语】打开时，投递后发送boss默认的招呼语后还会发送自定义招呼语；使用&lt;br&gt; \\n 换行；例子：【你好\\n我...】,注意如果使用脚本的打招呼语需要关掉boss上设置的自动打招呼语。",
             "----",
         ];
 
@@ -422,7 +420,7 @@ class OperationPanel {
         const githubImg = `<img width='16px' src='data:image/svg+xml;base64,PHN2ZyB0PSIxNzIxNjEyOTIyNjM1IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjQyNDAiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTEyIDQyLjY2NjY2N0E0NjQuNjQgNDY0LjY0IDAgMCAwIDQyLjY2NjY2NyA1MDIuMTg2NjY3IDQ2MC4zNzMzMzMgNDYwLjM3MzMzMyAwIDAgMCAzNjMuNTIgOTM4LjY2NjY2N2MyMy40NjY2NjcgNC4yNjY2NjcgMzItOS44MTMzMzMgMzItMjIuMTg2NjY3di03OC4wOGMtMTMwLjU2IDI3LjczMzMzMy0xNTguMjkzMzMzLTYxLjQ0LTE1OC4yOTMzMzMtNjEuNDRhMTIyLjAyNjY2NyAxMjIuMDI2NjY3IDAgMCAwLTUyLjA1MzMzNC02Ny40MTMzMzNjLTQyLjY2NjY2Ny0yOC4xNiAzLjQxMzMzMy0yNy43MzMzMzMgMy40MTMzMzQtMjcuNzMzMzM0YTk4LjU2IDk4LjU2IDAgMCAxIDcxLjY4IDQ3LjM2IDEwMS4xMiAxMDEuMTIgMCAwIDAgMTM2LjUzMzMzMyAzNy45NzMzMzQgOTkuNDEzMzMzIDk5LjQxMzMzMyAwIDAgMSAyOS44NjY2NjctNjEuNDRjLTEwNC4xMDY2NjctMTEuNTItMjEzLjMzMzMzMy01MC43NzMzMzMtMjEzLjMzMzMzNC0yMjYuOTg2NjY3YTE3Ny4wNjY2NjcgMTc3LjA2NjY2NyAwIDAgMSA0Ny4zNi0xMjQuMTYgMTYxLjI4IDE2MS4yOCAwIDAgMSA0LjY5MzMzNC0xMjEuMTczMzMzczM5LjY4LTEyLjM3MzMzMyAxMjggNDYuOTMzMzMzYTQ1NS42OCA0NTUuNjggMCAwIDEgMjM0LjY2NjY2NiAwYzg5LjYtNTkuMzA2NjY3IDEyOC00Ni45MzMzMzMgMTI4LTQ2LjkzMzMzM2ExNjEuMjggMTYxLjI4IDAgMCAxIDQuNjkzMzM0IDEyMS4xNzMzMzNBMTc3LjA2NjY2NyAxNzcuMDY2NjY3IDAgMCAxIDgxMC42NjY2NjcgNDc3Ljg2NjY2N2MwIDE3Ni42NC0xMTAuMDggMjE1LjQ2NjY2Ny0yMTMuMzMzMzM0IDIyNi45ODY2NjZhMTA2LjY2NjY2NyAxMDYuNjY2NjY3IDAgMCAxIDMyIDg1LjMzMzMzNHYxMjUuODY2NjY2YzAgMTQuOTMzMzMzIDguNTMzMzMzIDI2Ljg4IDMyIDIyLjE4NjY2N0E0NjAuOCA0NjAuOCAwIDAgMCA5ODEuMzMzMzMzIDUwMi4xODY2NjcgNDY0LjY0IDQ2NC42NCAwIDAgMCA1MTIgNDIuNjY2NjY3IiBmaWxsPSIjMjMxRjIwIiBwLWlkPSI0MjQxIj48L3BhdGg+PC9zdmc+' />`
         this.aboutLink = [
             [
-                [`<span>Auto_Boss_Batch_Push</span>&nbsp;${githubImg}`,"https://github.com/18476305640/xiaozhuang/tree/dev/resource"],
+                [`<span>Auto_Boss_Batch_Push</span>&nbsp;${githubImg}`,"https://github.com/My-Search/Auto_Boss_Batch_Push"],
                 [`<span>基于Boss_Batch_Push</span>&nbsp;${githubImg}`, "https://github.com/yangfeng20/boss_batch_push"],
             ]
         ]
@@ -1203,15 +1201,56 @@ class BossDOMApi {
         return `${title}--${company}`
     }
 
-    static nextPage() {
+
+    // 滑到页面百分比
+    static scrollToPercentage(percentage,beforeTime = 0,afterTime = 0) {
+        return new Promise((resolve) => {
+            // 提示信息
+            window.jobListPageHandler.operationPanel.refreshShow(`模拟-滚动到 ${percentage * 100}% 位置！`);
+
+            setTimeout(() => {
+                const scrollHeight = document.documentElement.scrollHeight;
+                const clientHeight = document.documentElement.clientHeight;
+                const targetPosition = (scrollHeight - clientHeight) * percentage; // 计算目标滚动位置
+
+                const duration = 500; // 滑动持续时间（毫秒）
+                const intervalTime = 10; // 每次移动的间隔时间
+                const steps = duration / intervalTime; // 计算滑动的步数
+                const startPosition = document.documentElement.scrollTop; // 当前滚动位置
+                const distanceToScroll = targetPosition - startPosition;// 需要滚动的距离
+                let currentStep = 0; // 当前步骤
+
+                // 滑动函数
+                function scrollStep() {
+                    currentStep++;
+                    const scrollPosition = startPosition + (distanceToScroll / steps) * currentStep;
+                    window.scrollTo(0, scrollPosition);
+                    if (currentStep < steps) {
+                        requestAnimationFrame(scrollStep);
+                    } else {
+                        // 滑动结束后调用 resolve()
+                        setTimeout(() => resolve(), afterTime);
+                    }
+                }
+
+                requestAnimationFrame(scrollStep);
+            }, beforeTime);
+        });
+    }
+
+    static async nextPage() {
+        // 滑到底部
+        await this.scrollToPercentage(1,460,460)
+        // 下一页逻辑开始
         let nextPageBtn = document.querySelector(".ui-icon-arrow-right");
 
         if (nextPageBtn == null || nextPageBtn.parentElement.className === "disabled") {
             // 没有下一页
+            await this.scrollToPercentage(0,0,0)
             return;
-
         }
-        nextPageBtn.click();
+        $(nextPageBtn).click();
+        await this.scrollToPercentage(0,0,0)
         return true;
     }
 
@@ -1255,6 +1294,7 @@ class JobListPageHandler {
         this.operationPanel.init()
         this.publishState = false
         this.nextPage = false
+        this.version = 1 // nextPage 版本号，用于超时解锁
         this.mock = false
         this.cache = new Map()
         this.selfDefCount = -1
@@ -1387,30 +1427,41 @@ class JobListPageHandler {
             }
         })
     }
-    loopPublish() {
+
+    async loopPublish() {
         // 过滤当前页满足条件的job并投递
         this.filterCurPageAndPush()
         // 获取职位pool list
         const positions = this.getPositionNames()
         // 等待的时间常数
-        const bigLoopIntervalTime = 18*60*1000; // 一个大轮的等待间隔
-        const loopIntervalTime = 35*1000; // 一轮的等待间隔
-        const entryNextPageWaitTime = 3*1000; // 换下一页的等待间隔
+        function getRandomInt(min, max = min + Math.floor(min / 2)) {
+            // 确保 min 和 max 都是整数
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            // 返回一个范围在[min, max]之间的随机整数
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+
+        const bigLoopIntervalTime = getRandomInt(2*60*1000,4*60*1000);; // 一个大轮的等待间隔
+        const loopIntervalTime = getRandomInt(30*1000); // 一轮的等待间隔
+        const entryNextPageWaitTime = getRandomInt(7*1000,10*1000); // 换下一页的等待间隔
         // 等待处理完当前页的jobList在投递下一页
-        let nextPageTask = setInterval(() => {
+        let nextPageTask = setInterval(async () => {
             if (!this.nextPage) {
                 this.operationPanel.refreshShow("正在等待当前页投递完毕...")
                 return;
             }
             // 到这里是当前页完成了，是要下一页还是换其它keyword重新来
             clearInterval(nextPageTask)
+
             if (!this.publishState) {
                 logger.info("投递结束")
                 this.operationPanel.refreshShow("投递停止")
                 this.changeBatchPublishState(false);
                 return;
             }
-            if (BossDOMApi.nextPage()) {
+            if (await BossDOMApi.nextPage()) {
                 // 进入下一页成功
                 this.operationPanel.refreshShow(`开始等待${entryNextPageWaitTime/1000}秒钟,进行下一页`)
                 // 点击下一页，需要等待页面元素变化，否则将重复拿到当前页的jobList
@@ -1444,6 +1495,7 @@ class JobListPageHandler {
 
     filterCurPageAndPush() {
         this.nextPage = false;
+        const currentVersion = this.version++;
         let notMatchCount = 0;
         let publishResultCount = {
             successCount: 0,
@@ -1451,7 +1503,15 @@ class JobListPageHandler {
         }
         let jobList = BossDOMApi.getJobList();
         logger.debug("jobList", jobList)
-        let process = Array.from(jobList).reduce(async (promiseChain, jobTag) => {
+        // 设置锁超时时间
+        setTimeout(()=> {
+            // 当前处理的版本号 === 现在的版本号
+            if(currentVersion !== this.version || this.nextPage ) return;
+            this.nextPage = true;
+             logger.error("投递超时解锁！");
+        },10*1000)
+        // 开始逐条投递
+        Array.from(jobList).reduce(async (promiseChain, jobTag) => {
             let jobTitle = BossDOMApi.getJobTitle(jobTag);
             const that = this;
             let jobCardJson;
@@ -1498,18 +1558,16 @@ class JobListPageHandler {
                 })
         }, Promise.resolve()).catch(error => {
             // 这里只是让报错不显示，不需要处理异常
-
-        });
-
-
-        // 当前页jobList中所有job处理完毕执行
-        process.finally(() => {
+            console.error("投递页异常：",error)
+            this.nextPage = true;
+        }).finally(() => {
+            this.nextPage = true;
+            // 当前页jobList中所有job处理完毕执行
             logger.info("当前页投递完毕---------------------------------------------------")
             logger.info("不满足条件的job数量：" + notMatchCount)
             logger.info("投递Job成功数量：" + publishResultCount.successCount)
             logger.info("投递Job失败数量：" + publishResultCount.failCount)
             logger.info("当前页投递完毕---------------------------------------------------")
-            this.nextPage = true;
         })
     }
 
@@ -1524,7 +1582,13 @@ class JobListPageHandler {
     reqJobDetail(jobTag, retries = 3) {
         return new Promise((resolve, reject) => {
             if (retries === 0) {
-                return reject(new FetchJobDetailFailExp());
+                try {
+                    console.log("卡？")
+                    return reject(new FetchJobDetailFailExp());
+                }catch(e) {
+                    console.error("会卡死，但应该不会！")
+                    return reject("无法FetchJobDetailFailExp");
+                }
             }
             // todo 如果在投递当前页中，点击停止投递，那么当前页重新投递的话，会将已经投递的再重新投递一遍
             //  原因是没有重新获取数据；沟通状态还是立即沟通，实际已经投递过一遍，已经为继续沟通
@@ -1774,9 +1838,9 @@ class JobListPageHandler {
         }
         // 看`工作内容-包含`是否满足（这里最后请求，因为非必要请求请求多了将导致账号检测出异常）
         const jobCardJson = await requestJobCardJson();
-        const jobContentMismatch = orAndMatch(this.scriptConfig.getJobContentInclude(true), jobCardJson.postDescription)
+        const jobDescribe = (jobCardJson?.postDescription || '') + (jobCardJson?.jobLabels?.join(",") || '');
+        const jobContentMismatch = orAndMatch(this.scriptConfig.getJobContentInclude(true),jobDescribe )
         if (!jobContentMismatch) {
-            logger.debug("当前job工作内容：" + jobCardJson.postDescription)
             logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容-包含(${jobContentMismatch})`)
             return false;
         }
