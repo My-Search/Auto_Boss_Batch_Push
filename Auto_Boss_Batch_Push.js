@@ -2,7 +2,7 @@
 // @name         Boss Batch Push Plus [Boss直聘批量投简历Plus]
 // @description  boss直聘批量简历投递
 // @namespace    maple
-// @version      1.7.5
+// @version      1.7.6
 // @author       maple,Ocyss,忒星,Iekrwh,zhuangjie
 // @license      Apache License 2.0
 // @run-at       document-start
@@ -1631,7 +1631,8 @@ class JobListPageHandler {
 
             // `工作内容-排除`检查
             let jobContentExclude = this.scriptConfig.getJobContentExclude(true);
-            const jobContentMismatch = Tools.semanticMatch(jobContentExclude, jobCardJson.postDescription)
+            const jobDescribe = (jobCardJson?.postDescription || '') + (jobCardJson?.jobLabels?.join(",") || '');
+            const jobContentMismatch = Tools.semanticMatch(jobContentExclude, jobDescribe)
             if (jobContentMismatch) {
                 logger.debug("当前job工作内容：" + jobCardJson.postDescription)
                 logger.info(`当前job被过滤：【${jobTitle}】 原因：不满足工作内容-排除(${jobContentMismatch})`)
