@@ -7,7 +7,7 @@
 // @license      Apache License 2.0
 // @run-at       document-start
 // @match        https://www.zhipin.com/*
-// @connect      www.tl.beer
+// @connect      *
 // @require      https://unpkg.com/maple-lib@1.0.3/log.js
 // @require      https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js
 // @require      https://cdn.jsdelivr.net/npm/js2wordcloud@1.1.12/dist/js2wordcloud.min.js
@@ -15,11 +15,13 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
+// @grant        GM_download
 // @grant        GM_addValueChangeListener
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
 // @grant        GM_cookie
 // @grant        GM_notification
+
 // ==/UserScript==
 
 "use strict";
@@ -184,9 +186,22 @@ class Tools {
         // 如果没有找到匹配的元素，则返回 false
         return false;
     }
+    // 从获取数值范围， "a12.1-33.2b" 返回 "12.1-33.2"
+    static extractRange(input) {
+        // 使用正则匹配数值范围，包括小数，例如 '12.1-33.2' 或 '5-12'
+        const regex = /(\d+(\.\d+)?)-(\d+(\.\d+)?)/;
+        const match = input.match(regex);
+
+        // 如果匹配成功，返回捕获到的范围
+        if (match) {
+            return match[0]; // 返回整个匹配的范围字符串
+        }
+
+        return null; // 如果未匹配到，返回 null
+    }
 
 
-    // 范围匹配
+    // 范围匹配(第一个参数是配置的值，第二个是匹配值)
     static rangeMatch(rangeStr = "", input, by = 1) {
         if (rangeStr == null || !`${rangeStr}`.trim()) {
             return true;
@@ -288,6 +303,69 @@ class Tools {
         return `${baseURL}?${queryString}`;
     }
 
+    static request({ method = "GET",url,body,headers = {} }) {
+        return new Promise((resolve,reject)=>{
+            GM_xmlhttpRequest({
+                method,
+                url,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+                    ...headers
+                },
+                data : JSON.stringify(body),
+                onload: function(responseObj){
+                    resolve(JSON.parse(responseObj.response));
+                },
+                onerror: function(response){
+                    reject(response);
+                }
+            });
+        })
+    }
+
+    // 定义异步的sendWX函数
+    static async sendLoudNotification(message,lnc = []) {
+        lnc = lnc.filter(item => item != null && `${item}`.trim().length > 0).map(item => item.trim())
+        if(lnc.length !== 4) {
+            if(lnc.length > 0) alert("增强通知配置失败，请注意书写格式！")
+            return;
+        }
+        // 保存要发送人员的账号,在通讯录可获取，多个人员之间使用逗号分隔，以下为展示数据
+        const user = lnc[3]; // 请替换为实际的用户账号，多个账号用逗号分隔
+        // 企业微信ID:企业微信管理界面-’我的企业‘页面中获取
+        const corpid = lnc[0]; // 请替换为实际的企业微信ID
+        // 应用秘钥:在‘自建应用’-‘创建应用’-‘应用管理’中获取
+        const corpsecret = lnc[1]; // 请替换为实际的应用秘钥
+        // 企业应用ID:在'自建应用'-'创建应用'-'应用管理'中获取
+        const agentid = lnc[2]; // 请替换为实际的企业应用ID
+
+        try {
+            // 使用fetch获取access_token
+            const url = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${corpid}&corpsecret=${corpsecret}`;
+            const response = await this.request({url});
+            const token = response.access_token;
+
+            // 构建请求地址
+            const requestUrl = `https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${token}`;
+
+            // 发送的JSON内容
+            const jsonPayload = {
+                "touser": user,
+                "msgtype": "text",
+                "agentid": agentid,
+                "text": {
+                    "content": message
+                },
+                "safe": 0
+            };
+            const resultData = await this.request({url: requestUrl, body: jsonPayload, method: "POST"});
+            console.log("发送响亮通知成功~",resultData)
+        } catch (error) {
+            console.error('send loud notification error:',error);
+            alert("在发送增强通知时失败，请检查各项值是否正确！,request error info："+error)
+        }
+    }
+
 }
 
 
@@ -378,6 +456,10 @@ class OperationPanel {
         this.jcInInputLab = null
         // 自定义招呼语lab
         this.selfGreetInputLab = null
+        // 薪资范围输入框lab
+        this.srInInputLab = null
+        // 通知增强配置信息输入框lab
+        this.lncInputLab = null
 
         // 词云图
         this.worldCloudModal = null
@@ -413,6 +495,8 @@ class OperationPanel {
             "搜索地区loop：如“*”表示不限地区,普通值为地区名；每一个大轮换一个地区搜索。如“*,天河区”会不限地区进行一轮“搜索关键字loop”，那下一次是“天河区”进行一轮“搜索关键字loop”",
             "搜索关键字loop：如【java实习,前端实习】如果本轮是‘java实习’那下一轮是‘前端实习’，如果当前搜索的不在配置内，也会在此会话中临时加入。",
             "自定义招呼语：编辑自定义招呼语，当【发送自定义招呼语】打开时，投递后发送boss默认的招呼语后还会发送自定义招呼语；使用&lt;br&gt; \\n 换行；例子：【你好\\n我...】,注意如果使用脚本的打招呼语需要关掉boss上设置的自动打招呼语。",
+            "薪资范围：投递工作的薪资范围一定在当前区间中，一定是区间，使用-连接范围。例如：【12-20】",
+            "高级配置-增强通知：需要以指定的格式书写请看输入框提示，以企业微信机器人方式发送通知，在投递后触发。",
             "----",
         ];
 
@@ -495,7 +579,9 @@ class OperationPanel {
         this.positionNames = DOMApi.createInputTag("搜索关键字loop", this.scriptConfig.getPositionNames());
         this.jcExInputLab = DOMApi.createInputTag("工作内容排除", this.scriptConfig.getJobContentExclude());
         this.jcInInputLab = DOMApi.createInputTag("工作内容包含", this.scriptConfig.getJobContentInclude());
+        this.srInInputLab = DOMApi.createInputTag("薪资范围（k）", this.scriptConfig.getSalaryRange(),{placeholder:"3个示例：4-10，-10,4- "});
         this.selfGreetInputLab = DOMApi.createInputTag("自定义招呼语（注意与APP上的招呼语不互斥）", this.scriptConfig.getSelfGreet(),{placeholder:"建议留空,投递后会打开会话，APP上自聊！",widthSize:"300px"});
+        this.lncInputLab = DOMApi.createInputTag("高级设置-投递通知增强（企业微信机器人）", this.scriptConfig.getLoudNoticeConfig(),{placeholder:"企业微信ID:企业微信密钥:机器人应用id:要发送人员的账号",widthSize:"300px"});
         DOMApi.eventListener(this.selfGreetInputLab.querySelector("input"), "blur", () => {
             // 失去焦点，编辑的招呼语保存到内存中；用于msgPage每次实时获取到最新的，即便不保存
             ScriptConfig.setSelfGreetMemory(DOMApi.getInputVal(this.selfGreetInputLab))
@@ -511,7 +597,9 @@ class OperationPanel {
         inputContainerDiv.appendChild(this.positionNames)
         inputContainerDiv.appendChild(this.jcExInputLab)
         inputContainerDiv.appendChild(this.jcInInputLab)
+        inputContainerDiv.appendChild(this.srInInputLab)
         inputContainerDiv.appendChild(this.selfGreetInputLab)
+        inputContainerDiv.appendChild(this.lncInputLab)
 
         // 进度显示
         this.showTable = this.buildShowTable();
@@ -845,6 +933,8 @@ class OperationPanel {
         this.scriptConfig.setJobContentInclude(DOMApi.getInputVal(this.jcInInputLab))
         this.scriptConfig.setJobAreaLoop(DOMApi.getInputVal(this.searchAreaLoopInputLab))
         this.scriptConfig.setSelfGreet(DOMApi.getInputVal(this.selfGreetInputLab))
+        this.scriptConfig.setSalaryRange(DOMApi.getInputVal(this.srInInputLab))
+        this.scriptConfig.setLoudNoticeConfig(DOMApi.getInputVal(this.lncInputLab))
 
     }
 
@@ -949,6 +1039,8 @@ class ScriptConfig extends TampermonkeyApi {
     static csrInKey = "companyScaleRange"
     // 自定义招呼语输入框
     static sgInKey = "sendSelfGreet"
+    // 通知增强输入框
+    static lncKey = "loudNoticeConfig"
     static SEND_SELF_GREET_MEMORY = "sendSelfGreetMemory"
 
     constructor() {
@@ -1042,6 +1134,10 @@ class ScriptConfig extends TampermonkeyApi {
         return this.getStrConfig(ScriptConfig.sgInKey);
     }
 
+    getLoudNoticeConfig() {
+        return this.getStrConfig(ScriptConfig.lncKey);
+    }
+
 
     setCompanyNameInclude(val) {
         this.configObj[ScriptConfig.cnInKey] = val.split(",");
@@ -1073,6 +1169,10 @@ class ScriptConfig extends TampermonkeyApi {
 
     setSalaryRange(val) {
         this.configObj[ScriptConfig.srInKey] = val;
+    }
+
+    setLoudNoticeConfig (val) {
+        this.configObj[ScriptConfig.lncKey] = val;
     }
 
     setCompanyScaleRange(val) {
@@ -1442,8 +1542,7 @@ class JobListPageHandler {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-
-        const bigLoopIntervalTime = getRandomInt(2*60*1000,4*60*1000);; // 一个大轮的等待间隔
+        const bigLoopIntervalTime = getRandomInt(1*60*1000,3*60*1000);; // 一个大轮的等待间隔
         const loopIntervalTime = getRandomInt(30*1000); // 一轮的等待间隔
         const entryNextPageWaitTime = getRandomInt(7*1000,10*1000); // 换下一页的等待间隔
         // 等待处理完当前页的jobList在投递下一页
@@ -1721,6 +1820,7 @@ class JobListPageHandler {
     }
 
     sendPublishReq(jobTag, errorMsg = "", retries = 3) {
+        let that = this;
         let jobTitle = BossDOMApi.getJobTitle(jobTag);
         if (retries === 3) {
             logger.debug("正在投递：" + jobTitle)
@@ -1790,6 +1890,9 @@ class JobListPageHandler {
                     // 释放投递锁
                     logger.debug("释放投递锁：" + jobTitle)
                     TampermonkeyApi.GmSetValue(ScriptConfig.PUSH_LOCK, "")
+
+                    let lnc = (that.scriptConfig.getLoudNoticeConfig() || '').split(':')
+                    Tools.sendLoudNotification(`🔔投递通知. 【${jobTag?.querySelector(".job-title")?.innerText}】`,lnc)
                 })
             }, 800);
         })
@@ -1808,6 +1911,7 @@ class JobListPageHandler {
     async matchJob(jobTag,requestJobCardJson) {
         let jobTitle = BossDOMApi.getJobTitle(jobTag);
         let pageCompanyName = BossDOMApi.getCompanyName(jobTag);
+
         // 不满足配置公司名
         if (!Tools.fuzzyMatch(this.scriptConfig.getCompanyNameInclude(true),
             pageCompanyName, true)) {
@@ -1829,6 +1933,16 @@ class JobListPageHandler {
         if (!orAndMatch(this.scriptConfig.getJobNameInclude(true),pageJobName)) {
             logger.debug("当前工作名：" + pageJobName)
             logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足配置工作名")
+            return false;
+        }
+
+        // 不满足新增范围
+        let pageSalaryRange = BossDOMApi.getSalaryRange(jobTag);
+        let salaryRange = this.scriptConfig.getSalaryRange();
+        // (Tools.extractRange(salaryRange) 会11-22K·13薪 得到“11-12”
+        if (!Tools.rangeMatch(salaryRange, pageSalaryRange = Tools.extractRange(pageSalaryRange))) {
+            logger.debug("当前薪资范围：" + pageSalaryRange)
+            logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足薪资范围 ，具体：",salaryRange,pageSalaryRange)
             return false;
         }
 
