@@ -1940,7 +1940,7 @@ class JobListPageHandler {
         let pageSalaryRange = BossDOMApi.getSalaryRange(jobTag);
         let salaryRange = this.scriptConfig.getSalaryRange();
         // (Tools.extractRange(salaryRange) 会11-22K·13薪 得到“11-12”
-        if (!Tools.rangeMatch(salaryRange, pageSalaryRange = Tools.extractRange(pageSalaryRange))) {
+        if (pageSalaryRange === "面议" || !Tools.rangeMatch(salaryRange, pageSalaryRange = Tools.extractRange(pageSalaryRange))) {
             logger.debug("当前薪资范围：" + pageSalaryRange)
             logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足薪资范围 ，具体：",salaryRange,pageSalaryRange)
             return false;
