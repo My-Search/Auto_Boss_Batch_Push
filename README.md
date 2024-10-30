@@ -6,4 +6,4 @@ Auto_Boss_Batch_Push基于Boss_Batch_Push实现自动化投递，引入了`地�
 **Pull request** (PR): 可直接提交PR。
 
 ## 脚本效果
-![](https://cdn.jsdelivr.net/gh/18476305640/typora@master/images/2024/08/28/1724808928192.png)
+![](https://cdn.jsdelivr.net/gh/18476305640/typora@master/images/2024/10/30/1730255144332.png)
