@@ -2,7 +2,7 @@
 // @name         Boss Batch Push Plus [Boss直聘批量投简历Plus]
 // @description  boss直聘批量简历投递
 // @namespace    maple
-// @version      1.8.4
+// @version      1.8.5
 // @author       maple,Ocyss,忒星,Iekrwh,zhuangjie
 // @license      Apache License 2.0
 // @run-at       document-start
@@ -855,7 +855,7 @@ class OperationPanel {
         this.refreshShow("生成词云图【获取Job数据中】")
         Array.from(jobList).reduce((promiseChain, jobTag) => {
             return promiseChain
-                .then(() => this.jobListHandler.reqJobDetail(jobTag))
+                .then(() => this.jobListHandler.reqJobDetail(jobTag, 2, false))
                 .then(jobCardJson => {
                     allJobContent += jobCardJson.postDescription + ""
                 })
@@ -1276,6 +1276,13 @@ class BossDOMApi {
         return jobStatusStr.includes("立即沟通");
     }
 
+    /**
+     * 是否投递过
+     * @param jobCardJson
+     */
+    static isCommunication(jobCardJson) {
+        return jobCardJson?.friendStatus === 1;
+    }
     static getJobDetailUrlParams(jobTag) {
         return jobTag.querySelector(".job-card-left").href.split("?")[1]
     }
@@ -1346,6 +1353,7 @@ class BossDOMApi {
 }
 
 class JobListPageHandler {
+    static cache = new Map()
 
     constructor() {
         this.operationPanel = new OperationPanel(this);
@@ -1637,22 +1645,25 @@ class JobListPageHandler {
         return this.cache.size
     }
 
-    reqJobDetail(jobTag, retries = 3) {
+    reqJobDetail(jobTag, retries = 3, useCache = true) {
         return new Promise((resolve, reject) => {
             if (retries === 0) {
+                let isRejected = false;
                 try {
-                    console.log("卡？")
-                    return reject(new FetchJobDetailFailExp());
-                }catch(e) {
-                    console.error("会卡死，但应该不会！")
-                    return reject("无法FetchJobDetailFailExp");
+                    const exp = reject(new FetchJobDetailFailExp());
+                    isRejected = true;
+                    return exp;
+                } finally {
+                    if(! isRejected) {
+                        return reject("无法FetchJobDetailFailExp");
+                    }
                 }
             }
             // todo 如果在投递当前页中，点击停止投递，那么当前页重新投递的话，会将已经投递的再重新投递一遍
             //  原因是没有重新获取数据；沟通状态还是立即沟通，实际已经投递过一遍，已经为继续沟通
             //  暂时不影响逻辑，重复投递，boss自己会过滤，不会重复发送消息；发送自定义招呼语也没问题；油猴会过滤【oldVal===newVal】的数据，也就不会重复发送自定义招呼语
             const key = BossDOMApi.getUniqueKey(jobTag)
-            if (this.cache.has(key)) {
+            if (useCache && JobListPageHandler.cache.has(key)) {
                 return resolve(this.cache.get(key))
             }
             let params = BossDOMApi.getJobDetailUrlParams(jobTag);
@@ -1672,6 +1683,11 @@ class JobListPageHandler {
         console.log(jobCardJson)
 
         return new Promise(async (resolve, reject) => {
+            // 是否沟通过
+            if (BossDOMApi.isCommunication(jobCardJson)) {
+                logger.info("当前job被过滤：【" + jobTitle + "】 原因：已经沟通过")
+                return reject(new JobNotMatchExp())
+            }
             // 猎头工作岗位检查
             let headhunterCheck = TampermonkeyApi.GmGetValue(ScriptConfig.SEND_HEADHUNTER_ENABLE, true);
             if (headhunterCheck && BossDOMApi.isHeadhunter(jobTag,jobCardJson)) {
@@ -1892,12 +1908,6 @@ class JobListPageHandler {
         if (pageSalaryRange === "面议" || !Tools.rangeMatch(salaryRange, pageSalaryRange = Tools.extractRange(pageSalaryRange))) {
             logger.debug("当前薪资范围：" + pageSalaryRange)
             logger.info("当前job被过滤：【" + jobTitle + "】 原因：不满足薪资范围 ，具体：",salaryRange,pageSalaryRange)
-            return false;
-        }
-
-        // 看是否已沟通过的
-        if (!BossDOMApi.isNotCommunication(jobTag)) {
-            logger.info("当前job被过滤：【" + jobTitle + "】 原因：已经沟通过")
             return false;
         }
 
